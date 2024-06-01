@@ -20,17 +20,25 @@ class Board:
         def output(self, n_center = 0, color = False, debug = False):
             output = str(self.n_bomb) if self.is_opened else 'F' if self.is_flag else ' '
             ic(self.is_opened, output)
+            output = output.center(n_center)
 
             if color:
-                n_left = max(0, (n_center - len(output)) // 2)
-                n_right = max(0, n_center - n_left)
-            else:
-                output = output.center(n_center)
+                cfflag = 34
+                cbflag = 47
+                cfbomb = [37, 34, 36, 32, 33, 35, 31, 31, 30]
+                cbbomb = [49, 49, 49, 49, 49, 49, 49, 40, 41]
+                creset = "\x1b[0m"
+
+                if self.is_opened:
+                    output = f"\x1b[1;{cfbomb[self.n_bomb]};{cbbomb[self.n_bomb]}m" + output
+                elif self.is_flag:
+                    output = f"\x1b[1;{cfflag};{cbflag}m" + output
+                output += creset
             if debug:
                 output += f":{'B' if self.is_bomb else str(self.n_bomb)}"
             return output
 
-    def __init__(self, size : tuple[int, int], n_bomb : int, safe_pos : tuple[int, int], debug = False):
+    def __init__(self, size : tuple[int, int], n_bomb : int, safe_pos : tuple[int, int], debug = False, color = False):
         assert type(size) is tuple
         assert type(n_bomb) is int
         assert type(safe_pos) is tuple
@@ -40,6 +48,7 @@ class Board:
         self.n_bomb = n_bomb
         self.safe_pos = safe_pos
         self.debug = debug
+        self.color = color
 
         self.bar = ' ' * self.size_pad[1] + ('+' + '-' * (self.size_pad[0] + (2 if self.debug else 0))) * self.size[0] + '+'
         
@@ -95,7 +104,7 @@ class Board:
             for x in range(self.size[0]):
                 if x == 0:
                     print(f'{y}'.center(self.size_pad[1]), end = "")
-                print('|' + self[(x, y)].output(n_center = self.size_pad[0], debug = self.debug), end = "")
+                print('|' + self[(x, y)].output(n_center = self.size_pad[0], debug = self.debug, color = self.color), end = "")
             print('|')
         print(self.bar)
 
@@ -149,12 +158,13 @@ def main(args):
         ic.enable()
     else:
         ic.disable()
+    color = args.color
 
     ic(size)
     ic(n_bomb)
     ic(safe_pos)
     ic(debug)
-    board = Board(size, n_bomb, safe_pos, debug = debug) 
+    board = Board(size, n_bomb, safe_pos, debug = debug, color = color) 
     while True:
         board.print()
         cmd = input("Enter the command (empty to show help):").split(' ')
@@ -187,4 +197,5 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--bomb", default = 10, help = "Number of bombs", type = int)
     parser.add_argument("-p", "--position", default = "5, 5", help = "Safe position (Bombs won't be placed 3x3)")
     parser.add_argument("-d", "--debug", action = "store_true", help = "Start with debug mode")
+    parser.add_argument("-c", "--color", action = "store_true", help = "Use colored output if possible")
     main(parser.parse_args())
