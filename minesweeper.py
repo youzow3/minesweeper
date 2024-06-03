@@ -19,7 +19,6 @@ class Board:
 
         def output(self, n_center = 0, color = False, debug = False):
             output = str(self.n_bomb) if self.is_opened else 'F' if self.is_flag else ' '
-            ic(self.is_opened, output)
             output = output.center(n_center)
 
             if color:
