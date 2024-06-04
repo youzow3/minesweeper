@@ -19,7 +19,6 @@ class Board:
 
         def output(self, n_center = 0, color = False, debug = False):
             output = str(self.n_bomb) if self.is_opened else 'F' if self.is_flag else ' '
-            ic(self.is_opened, output)
             output = output.center(n_center)
 
             if color:
@@ -41,7 +40,7 @@ class Board:
     def __init__(self, size : tuple[int, int], n_bomb : int, safe_pos : tuple[int, int], debug = False, color = False):
         assert type(size) is tuple
         assert type(n_bomb) is int
-        assert type(safe_pos) is tuple
+        assert type(safe_pos) is tuple or safe_pos is None
 
         self.size = size
         self.size_pad = (len(str(size[0])), len(str(size[1])))
@@ -54,13 +53,13 @@ class Board:
         
         bomb_map = list(range(size[0] * size[1]))
         random.shuffle(bomb_map)
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if not self.is_valid_index((safe_pos[0] + x, safe_pos[1] + y)):
-                    continue
-                bomb_map[self.get_index((safe_pos[0] + x, safe_pos[1] + y))] = -1
+        if safe_pos is not None:
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if not self.is_valid_index((safe_pos[0] + x, safe_pos[1] + y)):
+                        continue
+                    bomb_map[self.get_index((safe_pos[0] + x, safe_pos[1] + y))] = -1
         bomb_indexes = list(reversed(sorted(set(bomb_map))))[:n_bomb]
-        ic(bomb_indexes)
 
         self.board = [self.State(bomb_map[i] in bomb_indexes) for i in range(size[0] * size[1])]
         for y in range(size[1]):
@@ -93,6 +92,10 @@ class Board:
             raise BoardIndexError(index)
         return index[0] + index[1] * self.size[0]
 
+    def get_position(self, i : int):
+        assert type(i) == int
+        return (i % self.size[0], i // self.size[0])
+
     def print(self):
         for y in range(self.size[1]):
             if y == 0:
@@ -108,20 +111,23 @@ class Board:
             print('|')
         print(self.bar)
 
-    def open(self, index : tuple[int, int]) -> bool:
+    def open(self, index : tuple[int, int]) -> int:
         if not self.is_valid_index(index):
-            return False
+            return 0
         elif self[index].is_opened:
-            return False
+            return 0
         elif self[index].is_bomb:
             raise BoardExplosionError(index)
         elif self[index].n_bomb > 0:
             self[index].is_opened = True
+            return 1
         else:
+            n_opened = 0
             self[index].is_opened = True
             for xi in range(-1, 2):
                 for yi in range(-1, 2):
-                    self.open((index[0] + xi, index[1] + yi))
+                    n_opened += self.open((index[0] + xi, index[1] + yi))
+            return n_opened
     
     def flag(self, index : tuple[int, int]) -> bool:
         if not self.is_valid_index(index):
@@ -151,8 +157,11 @@ def main(args):
     size_str = args.size.split(',')
     size = (int(size_str[0]), int(size_str[1]))
     n_bomb = args.bomb
-    safe_pos_str = args.position.split(',')
-    safe_pos = (int(safe_pos_str[0]), int(safe_pos_str[1]))
+    if args.position is not None:
+        safe_pos_str = args.position.split(',')
+        safe_pos = (int(safe_pos_str[0]), int(safe_pos_str[1]))
+    else:
+        safe_pos = None
     debug = args.debug
     if debug:
         ic.enable()
@@ -195,7 +204,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-s", "--size", default = "10, 10", help = "The board size")
     parser.add_argument("-b", "--bomb", default = 10, help = "Number of bombs", type = int)
-    parser.add_argument("-p", "--position", default = "5, 5", help = "Safe position (Bombs won't be placed 3x3)")
+    parser.add_argument("-p", "--position", default = None, help = "Safe position (Bombs won't be placed 3x3)")
     parser.add_argument("-d", "--debug", action = "store_true", help = "Start with debug mode")
     parser.add_argument("-c", "--color", action = "store_true", help = "Use colored output if possible")
     main(parser.parse_args())
