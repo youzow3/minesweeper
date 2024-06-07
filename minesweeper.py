@@ -48,6 +48,7 @@ class Board:
         self.safe_pos = safe_pos
         self.debug = debug
         self.color = color
+        self.bomb_opened = False
 
         self.bar = ' ' * self.size_pad[1] + ('+' + '-' * (self.size_pad[0] + (2 if self.debug else 0))) * self.size[0] + '+'
         
@@ -117,7 +118,8 @@ class Board:
         elif self[index].is_opened:
             return 0
         elif self[index].is_bomb:
-            raise BoardExplosionError(index)
+            self.bomb_opened = True
+            return 0
         elif self[index].n_bomb > 0:
             self[index].is_opened = True
             return 1
@@ -197,8 +199,11 @@ def main(args):
             break
 
         if board.check():
+            print("Clear!")
             break
-    print("Clear!")
+        elif board.bomb_opened:
+            print("Mine was exploded!!")
+            break
 
 if __name__ == "__main__":
     parser = ArgumentParser()
