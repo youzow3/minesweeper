@@ -7,9 +7,10 @@ import numpy as np
 
 import minesweeper as env
 
+from argparse import ArgumentParser
 from icecream import ic
 
-class Agent:
+class AgentPrototype:
     class NN(nn.Module):
         def __init__(self):
             super().__init__()
@@ -80,8 +81,8 @@ class Agent:
         self.optimizer.zero_grad()
         return loss.item()
 
-def main():
-    agent = Agent()
+def main_prototype(args):
+    agent = AgentPrototype()
 
     def reward(i : int):
         n = board.open(board.get_position(i))
@@ -103,13 +104,15 @@ def main():
     total_loss = 0
 
     result_list = []
-    result_split = 1000 
+    result_split = args.split 
+    size_str = args.size.split(',')
+    size = (int(size_str[0]), int(size_str[1]))
 
-    epoch = 25000
+    epoch = args.epoch
     for i in range(epoch):
         n = 0
         loss = 0
-        board = env.Board((10, 10), 11, None, debug = False, color = True)
+        board = env.Board(size, args.bomb, None, debug = False, color = True)
         
         agent.last_reward = 0
         while True:
@@ -143,4 +146,14 @@ def main():
     ic(result_list)
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser()
+    parser.add_argument("-e", "--epoch", default = 1000, help = "Number of epoch", type = int)
+    parser.add_argument("-s", "--size", default = "10,10", help = "Board size (x, y)")
+    parser.add_argument("-b", "--bomb", default = 10, help = "Number of bombs", type = int)
+    parser.add_argument("--split", default = 100, help = "Result splitting", type = int)
+    parser.add_argument("-v", "--version", default = 0, help = "Agent version", type = int)
+    args = parser.parse_args()
+    if args.version == 0:
+        main_prototype(args)
+    else:
+        main(args)
