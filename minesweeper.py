@@ -139,8 +139,8 @@ class Board:
 
     def clean(self):
         non_bomb = 0
-        for y in range(size[1]):
-            for x in range(size[0]):
+        for y in range(self.size[1]):
+            for x in range(self.size[0]):
                 state = self[(x, y)]
                 if state.is_bomb and not state.is_flag:
                     raise BoardExplosionError((x, y))
@@ -178,7 +178,7 @@ def main(args):
     board = Board(size, n_bomb, safe_pos, debug = debug, color = color) 
     while True:
         board.print()
-        cmd = input("Enter the command (empty to show help):").split(' ')
+        cmd = input("Enter the command (empty to show help):").strip().split(' ')
         if cmd[0] == "" or cmd[0] == 'h':
             print("Command List")
             print("h           Show this help")
@@ -186,7 +186,11 @@ def main(args):
             print("f [x] [y]   Put the flag to the specified position")
             print("c           Clean bombs")
         elif cmd[0] == 'o' or cmd[0] == 'f':
-            p = (int(cmd[1]), int(cmd[2]))
+            try:
+                p = (int(cmd[1]), int(cmd[2]))
+            except:
+                print("Failed to convert value. Please do again.")
+                continue
             if not board.is_valid_index(p):
                 print("The position {p} is not valid")
                 continue
