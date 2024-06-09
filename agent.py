@@ -1,4 +1,5 @@
 
+import math
 import random
 import torch
 import torch.nn as nn
@@ -232,6 +233,7 @@ def main(args):
 
     n_clear = 0
     n_fail = 0
+    bad_selection = 0
     split_result = []
 
     ic(size)
@@ -242,6 +244,7 @@ def main(args):
     for i in range(args.epoch):
         board = env.Board(size, n_bomb, None, color = True)
         step = 0
+        bad = 0
         agent.reset()
         while True:
             step += 1
@@ -249,13 +252,19 @@ def main(args):
             n = board.open(board.get_position(a))
 
             if board.bomb_opened:
-                reward = -step
+                reward = -math.log(step)
                 n_fail += 1
             elif board.check():
-                reward = step_max - step
+                reward = math.log(step_max - step) 
                 n_clear += 1
             elif n == 0:
-                reward = 0
+                bad += 1
+                if bad == step_max:
+                    reward = -math.log(step_max)
+                    step = step_max
+                    bad_selection += 1
+                else:
+                    continue
             else:
                 reward = 1
 
@@ -265,6 +274,7 @@ def main(args):
                 board.print()
                 break
             elif step == step_max:
+                board.print()
                 print("Too many steps")
                 break
         if (i + 1) % args.split == 0:
@@ -273,7 +283,7 @@ def main(args):
         
         agent.train()
 
-    ic(n_clear, n_fail)
+    ic(n_clear, n_fail, bad_selection)
     ic(f"Last Result n_clear/n_fail={n_clear / n_fail * 100}%")
     ic(split_result)
         
