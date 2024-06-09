@@ -200,7 +200,6 @@ def main(args):
                 board.flag(p)
         elif cmd[0] == 'c':
             board.clean()
-            break
 
         if board.check():
             print("Clear!")
