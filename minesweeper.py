@@ -185,6 +185,7 @@ def main(args):
             print("o [x] [y]   Open the specified position")
             print("f [x] [y]   Put the flag to the specified position")
             print("c           Clean bombs")
+            print("q           Quit game")
         elif cmd[0] == 'o' or cmd[0] == 'f':
             try:
                 p = (int(cmd[1]), int(cmd[2]))
@@ -200,6 +201,10 @@ def main(args):
                 board.flag(p)
         elif cmd[0] == 'c':
             board.clean()
+        elif cmd[0] == 'q':
+            i = input("Do you really quit game? [y/N] ")
+            if i.lower() == 'y':
+                break
 
         if board.check():
             print("Clear!")
