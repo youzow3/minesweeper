@@ -49,7 +49,7 @@ python3 minesweeper.py
 8x8,爆弾16個で開始、カラー出力
 
 ```bash
-python3 minesweeper.py --size 8,8 -bomb 16 --color
+python3 minesweeper.py --size 8,8 --bomb 16 --color
 ```
 
 ### 遊び方
